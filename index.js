@@ -17,16 +17,23 @@ const client = new MongoClient(uri, {
 });
 async function run() {
   try {
+    //categories
     const bookCategoriesCollection = client
       .db("ReShop")
       .collection("BookCategories");
+    //products
     const booksCollection = client.db("ReShop").collection("Books");
+    //bookings
+    const bookingsCollection = client.db("ReShop").collection("bookings");
+    //users
+    const userscollection = client.db("Reshop").collection("users");
 
     app.get("/BookCategories", async (req, res) => {
       const query = {};
       const options = await bookCategoriesCollection.find(query).toArray();
       res.send(options);
     });
+
     //category dhore api load korar api
     app.get("/category/:id", async (req, res) => {
       const id = req.params.id;
@@ -35,6 +42,7 @@ async function run() {
       const books = await booksCollection.find(query).toArray();
       res.send(books);
     });
+
     //specific books er id
     app.get("/books/:id", async (req, res) => {
       const id = req.params.id;
@@ -42,6 +50,21 @@ async function run() {
       const query = { _id: id };
       const books = await booksCollection.findOne(query);
       res.send(books);
+    });
+
+    //booking get
+    app.get("/bookings", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const bookings = await bookingsCollection.find(query).toArray();
+      res.send(bookings);
+    });
+    //booking data post
+    app.post("/bookings", async (req, res) => {
+      const booking = req.body;
+      // console.log(booking);
+      const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
     });
   } finally {
   }

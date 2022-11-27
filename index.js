@@ -26,7 +26,7 @@ async function run() {
     //bookings
     const bookingsCollection = client.db("ReShop").collection("bookings");
     //users
-    const userscollection = client.db("Reshop").collection("users");
+    const usersCollection = client.db("ReShop").collection("users");
 
     app.get("/BookCategories", async (req, res) => {
       const query = {};
@@ -59,11 +59,19 @@ async function run() {
       const bookings = await bookingsCollection.find(query).toArray();
       res.send(bookings);
     });
+
     //booking data post
     app.post("/bookings", async (req, res) => {
       const booking = req.body;
       // console.log(booking);
       const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    //user database e pathabo
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
       res.send(result);
     });
   } finally {

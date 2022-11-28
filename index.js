@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.oladmam.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
+
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -105,6 +105,26 @@ async function run() {
       console.log(user);
     });
 
+    seller;
+    app.get("/users/seller/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      console.log(user);
+      res.send({ isSeller: user?.role === "seller" });
+    });
+
+    // app.get("/users/seller/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email: email };
+    //   const user = await usersCollection.findOne(query);
+    //   console.log(user);
+    //   res.send({
+    //     isSeller: user?.login_user === "seller" && user?.role !== "admin",
+    //   });
+    // });
+
+    //admin
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };

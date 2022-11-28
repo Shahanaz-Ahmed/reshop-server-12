@@ -45,6 +45,10 @@ async function run() {
     const bookingsCollection = client.db("ReShop").collection("bookings");
     //users
     const usersCollection = client.db("ReShop").collection("users");
+    //addproduct
+    const addProductsCollection = client
+      .db("ReShop")
+      .collection("addedProducts");
 
     app.get("/BookCategories", async (req, res) => {
       const query = {};
@@ -105,7 +109,7 @@ async function run() {
       console.log(user);
     });
 
-    seller;
+    //seller
     app.get("/users/seller/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
@@ -143,6 +147,12 @@ async function run() {
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.post("/addedProducts", async (req, res) => {
+      const addedProduct = req.body;
+      const result = await addProductsCollection.insertOne(addedProduct);
       res.send(result);
     });
   } finally {

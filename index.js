@@ -118,6 +118,7 @@ async function run() {
       res.send({ isSeller: user?.role === "seller" });
     });
 
+    //new try
     // app.get("/users/seller/:email", async (req, res) => {
     //   const email = req.params.email;
     //   const query = { email: email };
@@ -150,9 +151,32 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/addedProducts", async (req, res) => {
+      const query = {};
+      const products = await addProductsCollection.find(query).toArray();
+      res.send(products);
+    });
+
     app.post("/addedProducts", async (req, res) => {
       const addedProduct = req.body;
       const result = await addProductsCollection.insertOne(addedProduct);
+      res.send(result);
+    });
+    //delete user
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: ObjectId(id) };
+      const result = await usersCollection.deleteOne(filter);
+      res.send(result);
+      console.log(result);
+    });
+
+    //delete product
+    app.delete("/addedProducts/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await addProductsCollection.deleteOne(filter);
       res.send(result);
     });
   } finally {
@@ -161,7 +185,7 @@ async function run() {
 run().catch(console.log);
 
 app.get("/", async (req, res) => {
-  res.send("Reshop server is running");
+  res.send("ReShop server is running");
 });
 
-app.listen(port, () => console.log(`Reshop server running on ${port}`));
+app.listen(port, () => console.log(`ReShop server running on ${port}`));

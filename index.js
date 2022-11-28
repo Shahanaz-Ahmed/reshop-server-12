@@ -18,7 +18,7 @@ const client = new MongoClient(uri, {
 });
 
 function verifyJWT(req, res, next) {
-  console.log("token inside VerifyJWT", req.headers.authorization);
+  // console.log("token inside VerifyJWT", req.headers.authorization);
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).send("unauthorized access");
@@ -50,6 +50,18 @@ async function run() {
       .db("ReShop")
       .collection("addedProducts");
 
+    //NOTE: make sure you use verifySeller after verifyJWT
+    const verifySeller = async (req, res, next) => {
+      console.log("Inside verifyAdmin", req.decoded.email);
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== "seller") {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+
     app.get("/BookCategories", async (req, res) => {
       const query = {};
       const options = await bookCategoriesCollection.find(query).toArray();
@@ -59,7 +71,7 @@ async function run() {
     //category dhore api load korar api
     app.get("/category/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const query = { category_id: id };
       const books = await booksCollection.find(query).toArray();
       res.send(books);
@@ -68,7 +80,6 @@ async function run() {
     //specific books er id
     app.get("/books/:id", async (req, res) => {
       const id = req.params.id;
-      // console.log(id);
       const query = { _id: id };
       const books = await booksCollection.findOne(query);
       res.send(books);
@@ -106,7 +117,7 @@ async function run() {
         return res.send({ accessToken: token });
       }
       res.status(403).send({ accessToken: "" });
-      console.log(user);
+      // console.log(user);
     });
 
     //seller
@@ -114,20 +125,16 @@ async function run() {
       const email = req.params.email;
       const query = { email: email };
       const user = await usersCollection.findOne(query);
-      console.log(user);
-      res.send({ isSeller: user?.role === "seller" });
+      // console.log(user);
+      res.send({ user, isSeller: user?.role === "seller" });
     });
 
-    //new try
-    // app.get("/users/seller/:email", async (req, res) => {
-    //   const email = req.params.email;
-    //   const query = { email: email };
-    //   const user = await usersCollection.findOne(query);
-    //   console.log(user);
-    //   res.send({
-    //     isSeller: user?.login_user === "seller" && user?.role !== "admin",
-    //   });
-    // });
+    app.get("/userType", async (req, res) => {
+      const query = { role: req.query.role };
+      const cursor = usersCollection.find(query);
+      const selectedBooks = await cursor.toArray();
+      res.send(selectedBooks);
+    });
 
     //admin
     app.get("/users/admin/:email", async (req, res) => {
@@ -145,39 +152,49 @@ async function run() {
     });
 
     //user database e pathabo
-    app.post("/users", async (req, res) => {
+    app.post("/users", verifyJWT, async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
 
-    app.get("/addedProducts", async (req, res) => {
+    app.get("/addedProducts", verifyJWT, verifySeller, async (req, res) => {
       const query = {};
       const products = await addProductsCollection.find(query).toArray();
       res.send(products);
     });
 
-    app.post("/addedProducts", async (req, res) => {
+    app.post("/addedProducts", verifyJWT, async (req, res) => {
       const addedProduct = req.body;
       const result = await addProductsCollection.insertOne(addedProduct);
       res.send(result);
     });
+
     //delete user
-    app.delete("/users/:id", async (req, res) => {
+    app.delete("/users/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      // console.log(id);
       const filter = { _id: ObjectId(id) };
       const result = await usersCollection.deleteOne(filter);
       res.send(result);
-      console.log(result);
+      // console.log(result);
     });
 
     //delete product
-    app.delete("/addedProducts/:id", async (req, res) => {
+    app.delete("/addedProducts/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const result = await addProductsCollection.deleteOne(filter);
       res.send(result);
+    });
+
+    app.get("/addedProducts/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: ObjectId(id) };
+      const product = await addProductsCollection.findOne(query);
+      console.log(product);
+      res.send(product);
     });
   } finally {
   }
